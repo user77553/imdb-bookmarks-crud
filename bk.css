@@ -1,9 +1,6 @@
 body {
-  background: #080808;
-  color: #FFF;
-  font-family: 'Roboto';
-  font-size: 14px;
-  font-weight: 300;
+ background-color: black;
+ color: white;
 }
 
 .banner {
@@ -115,7 +112,9 @@ tr.br td {
 
 .poster_unit {
  max-height: 300px;
+ /*max-width: 200px;*/
  height: 300px;
+ /*width: 100%;*/
  text-align: center;
  position: relative;
  background-color: #292929; 
@@ -159,31 +158,23 @@ select, option {
   height: 28px;
 }
 
-input {
+.pagination {
   text-decoration: none;
-  outline: none;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgb(21, 22, 37);
-  padding: 0 8px;
-  height: 30px;
-  color: #FFF;
+  outline: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  padding-left: 2px;
+  margin: 2px;
   display: inline-block;
-  -webkit-transition: all .1s ease-out;
-  -o-transition: all .1s ease-out;
-  transition: all .1s ease-out;
 }
 
-input:hover {
-  background-color:#4d4a4a;
+.pagination-box {
+  margin: auto;
+  padding: 2px;
 }
 
-h1 {
-  text-transform: uppercase;
-  color: #FFF;
-  font-size: 16px;
-  font-weight: 400;
-  -webkit-transition: none;
-  -o-transition: none;
-  transition: none;
+.current-page {
+  font-weight: bold;
+  text-decoration: underline;
+  color: #B3E725;
 }

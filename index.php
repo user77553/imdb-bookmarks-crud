@@ -1,21 +1,17 @@
 <?php 
 $total = 0;
 
-function sqltime($timestamp = false)
-{
-    if ($timestamp === false) {
-        $timestamp = time();
-    }
-
+function sqltime($timestamp = false) {
+    if ($timestamp === false) $timestamp = time();
     return date('Y-m-d H:i:s', $timestamp);
 }
 
 function db_string($str) {
-	
-	global $link;
+
+   global $link;
 
    return mysqli_real_escape_string($link, $str);
-   
+
 }
 
 $link = mysqli_connect("localhost", "root", "password", "bookmarks");
@@ -124,27 +120,41 @@ if($loadid) {
 $searchtitle = trim($_POST['title']);
 $order = trim($_POST['order']);
 
+$query = "SELECT * FROM bookmarks";
+$total =   mysqli_query($link, $query);
+
+$results_per_page = 48;
+$number_of_page = ceil ($total->num_rows / $results_per_page);
+
+if (!isset ($_GET['page']) ) {
+   $page = 1;
+} else {
+   $page = $_GET['page'];
+}
+$page_first_result = ($page-1) * $results_per_page;
+
 if($searchtitle) {
    $query = "SELECT * FROM bookmarks WHERE Title LIKE '%".$searchtitle."%' ORDER BY Bookmarked $order";
 }else {
-   $query = "SELECT * FROM bookmarks WHERE IMDb IS NOT NULL ORDER BY Bookmarked $order LIMIT 48";
+   $query = "SELECT * FROM bookmarks WHERE IMDb IS NOT NULL ORDER BY Bookmarked $order LIMIT " . $page_first_result . ',' . $results_per_page;
 }   
 $result = mysqli_query($link, $query);
-$query = "SELECT * FROM bookmarks";
-$total =   mysqli_query($link, $query);
+
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
 <head>
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <link rel="shortcut icon" href="../favicon.ico" />
+<link rel="shortcut icon" href="../favicon.ico" />
    <title>Bookmarks</title>
    <link href="bk.css" rel="stylesheet" type="text/css" />
+   <link href="../index.css" rel="stylesheet" type="text/css" />
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
    <script src="bookmarks.js" type="text/javascript"></script>
 </head>
 
 <body>
-   <h1>Bookmarks</h1> <?='<span style="color:yellow"> '.$msg.'</span>'?>
+   <h1>Bookmarks <input type="button" value="Home" id="home"></h1> <?='<span style="color:yellow"> '.$msg.'</span>'?>
       <form id="form_search" action="index.php" method="post">    
          <input type="text" name="title" id="title" value="<?=$searchtitle?>"/>
          <label>Sort by:</label>
@@ -176,7 +186,22 @@ $total =   mysqli_query($link, $query);
 ?>   
    <input class='' type='submit' value='Move down' onclick="document.getElementById('form_main').action = 'movedown.php';" />      
    <input class='submit' type='submit' value='Remove' />
-   
+   <div class="pagination-box">
+<?php for($pageN = 1; $pageN<= $number_of_page; $pageN++) {
+
+         $first_page = ( ($pageN * $results_per_page) - $results_per_page ) + 1;
+
+         if ( $pageN * $results_per_page < $total->num_rows)
+            $last_page = ( $pageN * $results_per_page);
+         else $last_page = $total->num_rows;
+
+         if ( $pageN == $page) $current = "current-page";
+         else $current = "";
+
+         echo '<a class="pagination '. $current .'" href = "index.php?page=' . $pageN . '">' . $first_page . '-' . $last_page . '</a>';
+      }
+?>
+   </div>
    <table class="grid">
    <tr>
 <?php
@@ -216,3 +241,5 @@ $total =   mysqli_query($link, $query);
    
    mysqli_close($link);
 ?>
+</body>
+</html>
