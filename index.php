@@ -1,5 +1,4 @@
-<?php 
-$total = 0;
+<?php
 
 function sqltime($timestamp = false) {
     if ($timestamp === false) $timestamp = time();
@@ -119,26 +118,36 @@ if($loadid) {
 // search
 $searchtitle = trim($_POST['title']);
 $order = trim($_POST['order']);
+if ($order == "") $order = "ASC";
 
 $query = "SELECT * FROM bookmarks";
 $total =   mysqli_query($link, $query);
-
-$results_per_page = 48;
-$number_of_page = ceil ($total->num_rows / $results_per_page);
+$TotalRecords = $total->num_rows;
+$ItemsPerPage = 48;
+$ShowPages = 11;
 
 if (!isset ($_GET['page']) ) {
    $page = 1;
 } else {
    $page = $_GET['page'];
 }
-$page_first_result = ($page-1) * $results_per_page;
+$page_first_result = ($page-1) * $ItemsPerPage;
 
-if($searchtitle) {
+if ($searchtitle) {
    $query = "SELECT * FROM bookmarks WHERE Title LIKE '%".$searchtitle."%' ORDER BY Bookmarked $order";
-}else {
-   $query = "SELECT * FROM bookmarks WHERE IMDb IS NOT NULL ORDER BY Bookmarked $order LIMIT " . $page_first_result . ',' . $results_per_page;
-}   
+} else {
+   $query = "SELECT * FROM bookmarks WHERE IMDb IS NOT NULL ORDER BY Bookmarked $order LIMIT " . $page_first_result .
+   ',' . $ItemsPerPage;
+}
+
 $result = mysqli_query($link, $query);
+
+if ($searchtitle) {
+   $total = $result;
+   $TotalRecords = $result->num_rows;
+}
+
+$TotalPages = ceil($TotalRecords / $ItemsPerPage);
 
 ?>
 
@@ -163,7 +172,7 @@ $result = mysqli_query($link, $query);
             <option value="DESC" <?php if ($order === 'DESC') echo 'selected' ?>>DESC</option>
          </select>
          <input class='' type='submit' value='Search' />
-         Showing <?=$result->num_rows?> / <?=$total->num_rows?>
+         Showing <?=$result->num_rows?> / <?=$TotalRecords?>
       <input type="button" id="toggletools" value="Tools" class="submit" onclick="$('#tools').toggle();" />
       </form>
    <br>
@@ -187,18 +196,55 @@ $result = mysqli_query($link, $query);
    <input class='' type='submit' value='Move down' onclick="document.getElementById('form_main').action = 'movedown.php';" />      
    <input class='submit' type='submit' value='Remove' />
    <div class="pagination-box">
-<?php for($pageN = 1; $pageN<= $number_of_page; $pageN++) {
+<?php
 
-         $first_page = ( ($pageN * $results_per_page) - $results_per_page ) + 1;
+      $StartPage = ceil($page);
+      $StartPage = min($StartPage, ceil($TotalRecords / $ItemsPerPage));
+      $ShowPages--;
 
-         if ( $pageN * $results_per_page < $total->num_rows)
-            $last_page = ( $pageN * $results_per_page);
-         else $last_page = $total->num_rows;
+      if ($TotalPages > $ShowPages) {
+         $StartPosition = $StartPage - round($ShowPages / 2);
+
+         if ($StartPosition <= 0) {
+            $StartPosition = 1;
+         } else {
+            if ($StartPosition >= ($TotalPages - $ShowPages)) {
+               $StartPosition = $TotalPages - $ShowPages;
+            }
+         }
+
+         $StopPage = $ShowPages + $StartPosition;
+
+      } else {
+            $StopPage = $TotalPages;
+            $StartPosition = 1;
+      }
+
+      $StartPosition = max($StartPosition, 1);
+
+      if ( $page != 1 ) {
+         echo '<a class="pagination" href = "index.php?page=1"><< First</a>';
+         echo '<a class="pagination" href = "index.php?page=' . ( $page - 1 ) . '">< Prev</a>';
+      }
+
+      for($pageN = $StartPosition; $pageN <= $StopPage && $TotalRecords > $ItemsPerPage; $pageN++) {
+
+         $first_page = ( ($pageN * $ItemsPerPage) - $ItemsPerPage ) + 1;
+
+         if ( $pageN * $ItemsPerPage < $TotalRecords)
+            $last_page = ( $pageN * $ItemsPerPage);
+         else $last_page = $TotalRecords;
 
          if ( $pageN == $page) $current = "current-page";
          else $current = "";
 
          echo '<a class="pagination '. $current .'" href = "index.php?page=' . $pageN . '">' . $first_page . '-' . $last_page . '</a>';
+      }
+      $pageN--;
+
+      if ( $page != $TotalPages && $TotalPages) {
+         echo '<a class="pagination" href = "index.php?page=' . ( $page + 1 ) . '">Next ></a>';
+         echo '<a class="pagination" href = "index.php?page=' . $TotalPages . '">Last >></a>';
       }
 ?>
    </div>
